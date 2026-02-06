@@ -1,13 +1,14 @@
-from src.api.base_client import BaseClient
+from api.base_client import BaseAPIClient
 
-
-class AuthAPI(BaseClient):
+class AuthAPI(BaseAPIClient):
     def __init__(self):
-        super().__init__("https://reqres.in")
+        super().__init__(
+            base_url="https://reqres.in"
+        )
 
     def login(self, email, password):
         payload = {
             "email": email,
             "password": password
         }
-        return self.post("/api/login", payload)
+        return self.post("/api/login", json=payload)
