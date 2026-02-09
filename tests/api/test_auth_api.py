@@ -33,11 +33,8 @@ def test_register_success(auth_api):
     )
 
     assert response.status_code == 200
-    assert "token" in response.json()
 
-
-    body = safe_json(response)
-    assert body is not None
+    body = response.json()
     assert "token" in body
 
 
