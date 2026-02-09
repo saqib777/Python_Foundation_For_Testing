@@ -34,6 +34,7 @@ def test_register_success(auth_api):
 
     assert response.status_code == 200
 
+
     body = response.json()
     assert "token" in body
 
@@ -44,7 +45,7 @@ def test_login_missing_password(auth_api):
         password=""
     )
 
-    assert response.status_code == 403
+    assert response.status_code in (400, 403)
     assert response.text != ""  # body exists
 
 

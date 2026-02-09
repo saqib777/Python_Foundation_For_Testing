@@ -1,3 +1,5 @@
+from api.base_client import BaseAPIClient
+
 class AuthAPI:
     def __init__(self):
         self.client = BaseAPIClient(
