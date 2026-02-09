@@ -26,10 +26,10 @@ def safe_json(response):
     # assert response.status_code == 200
     assert "token" in response.json()
 
-def test_login_success(auth_api):
-    response = auth_api.login(
+def test_register_success(auth_api):
+    response = auth_api.register(
         email="eve.holt@reqres.in",
-        password="cityslicka"
+        password="pistol"
     )
 
     assert response.status_code == 200
