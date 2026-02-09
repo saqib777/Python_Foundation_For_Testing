@@ -1,8 +1,12 @@
 from src.api.base_client import BaseAPIClient
 
 
-class AuthAPI(BaseAPIClient):
-    LOGIN_ENDPOINT = "/login"
+class AuthAPI:
+    def __init__(self):
+        self.client = BaseAPIClient(
+            base_url="https://reqres.in/api",
+            headers={"Content-Type": "application/json"}
+        )
 
     def login(self, email=None, password=None):
         payload = {}
@@ -12,4 +16,4 @@ class AuthAPI(BaseAPIClient):
         if password is not None:
             payload["password"] = password
 
-        return self.post(self.LOGIN_ENDPOINT, json=payload)
+        return self.client.post("/login", json=payload)
