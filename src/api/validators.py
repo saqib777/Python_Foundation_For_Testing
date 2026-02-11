@@ -1,10 +1,9 @@
-def validate_user_object(user):
-    assert isinstance(user, dict)
+def validate_token_response(data):
+    assert "token" in data
+    assert isinstance(data["token"], str)
 
-    required_keys = {"id", "email", "first_name", "last_name", "avatar"}
-
-    assert required_keys.issubset(user.keys())
-
-    assert isinstance(user["id"], int)
-    assert isinstance(user["email"], str)
-    assert "@" in user["email"]
+def validate_user_object(data):
+    assert "id" in data
+    assert "email" in data
+    assert "first_name" in data
+    assert "last_name" in data
