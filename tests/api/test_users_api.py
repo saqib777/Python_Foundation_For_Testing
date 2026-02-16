@@ -13,7 +13,12 @@ pytestmark = pytest.mark.api
 def users_api():
     return UsersAPI()
 
-
+def safe_json(response):
+    try:
+        return response.json()
+    except ValueError:
+        return None
+    
 def test_get_users_success(users_api):
     response = users_api.get_users(page=2)
 
