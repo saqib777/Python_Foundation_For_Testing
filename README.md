@@ -1,222 +1,244 @@
-# Python Foundation for Testing (SDET Journey)
+# Python Test Automation Framework
 
-This repository documents my hands-on journey from Python fundamentals to becoming a full-fledged **SDET (Software Development Engineer in Test)**. It is intentionally built step by step, focusing on *how real testing frameworks grow over time*, not just on writing passing tests.
+A modular, CI-integrated automation framework built using Python, Pytest, Requests, Selenium, and GitHub Actions.
 
-The project covers **UI automation, API testing, performance basics, flaky test analysis, and test strategy**, all structured in a scalable and production-style layout.
-
----
-
-## Why this repository exists
-
-This is not a demo project.
-
-This repository exists to:
-
-* Practice **real SDET workflows**, not shortcuts
-* Understand *why* frameworks are structured the way they are
-* Build confidence in debugging, refactoring, and scaling test suites
-* Simulate how testing evolves in real companies
-
-Every failure, refactor, and design decision here is intentional and educational.
+This repository represents a structured automation foundation covering API testing, UI automation, performance validation, and continuous integration. The goal of this project is not just to write tests, but to design a maintainable, extensible automation architecture aligned with real-world engineering standards.
 
 ---
 
-## Project Structure (High-Level)
+## Project Philosophy
 
-```
-Python_Foundation
-│
-├── src/
-│   ├── api/                # API clients and API-level logic
-│   │   ├── base_client.py  # Reusable HTTP client (requests wrapper)
-│   │   ├── auth_api.py     # Authentication-related API actions
-│   │   └── __init__.py
-│   │
-│   ├── pages/              # Page Object Model (UI automation)
-│   │   ├── login_page.py
-│   │   ├── dynamic_loading_page.py
-│   │   ├── checkbox_page.py
-│   │   └── google_home_page.py
-│   │
-│   ├── selenium_basics/    # Early Selenium learning experiments
-│   └── utils/              # Shared helpers (strings, math, etc.)
-│
-├── tests/
-│   ├── ui/                 # UI test cases (pytest + Selenium)
-│   ├── api/                # API test cases (pytest + requests)
-│   ├── performance/        # Performance & timing-related tests
-│   └── test_strategy/      # Test design, notes, and strategy docs
-│
-├── conftest.py              # Shared pytest fixtures (browser, config)
-├── pytest.ini               # Pytest config + markers
-├── requirements.txt         # All dependencies
-├── README.md                # You are here
-└── .gitignore
-```
+This framework was built with architectural intent. Instead of writing standalone scripts that directly call APIs or UI actions, the design enforces separation of concerns, reusability, and clarity. Each layer has a defined responsibility. HTTP communication is abstracted. Validation logic is centralized. Tests focus only on behavioral verification.
+
+The structure reflects how production-grade automation should be organized: scalable, readable, CI-ready, and defensive against environmental inconsistencies.
 
 ---
 
-## Core Testing Areas Covered
+## Architecture Overview
 
-### 1. UI Automation (Selenium + Pytest)
+The project is divided into clearly defined layers:
 
-* Page Object Model (POM)
-* Explicit waits and synchronization
-* Positive and negative test scenarios
-* Marker-based execution (`smoke`, `regression`)
-* Handling unstable UI tests (skipped/flaky tests)
+* **API Layer (`src/api/`)**: Contains client abstractions and domain-specific API classes.
+* **Validation Layer (`validators.py`)**: Contains reusable response validation logic.
+* **Test Layer (`tests/`)**: Contains API, UI, and performance test modules.
+* **CI Layer (`.github/workflows/`)**: Contains GitHub Actions configuration for automated execution.
 
-Example scenarios:
-
-* Login (positive & negative)
-* Dynamic content loading
-* Checkbox interactions
-* Google Images exploration (kept for learning, marked unstable)
+This layered approach prevents duplication and enforces maintainability.
 
 ---
 
-### 2. API Testing (Requests + Pytest)
+## API Automation Design
 
-This is where the project transitions from **tester** to **SDET**.
+### Base Client Abstraction
 
-Key ideas:
+All HTTP communication is routed through a base client class. This centralizes:
 
-* API tests do not depend on UI
-* Logic is reusable and layered
-* Failures are faster and more reliable
+* Base URL configuration
+* HTTP method handling
+* Future logging extensions
+* Potential retry mechanisms
 
-Design approach:
+Instead of calling `requests.get()` or `requests.post()` directly in tests, API classes such as `AuthAPI` and `UsersAPI` inherit from the base client. This ensures consistency and scalability.
 
-* `BaseAPIClient` handles:
-
-  * HTTP methods (GET, POST, PUT, DELETE)
-  * Headers
-  * Timeouts
-  * Response handling
-* Feature-specific APIs (e.g. `auth_api.py`) extend this base
-
-Planned API test coverage:
-
-* Authentication success & failure
-* Invalid payload handling
-* Status code validation
-* Schema / response structure checks
-* Token-based flows
+Tests never directly manage request construction. They validate outcomes.
 
 ---
 
-### 3. Performance & Stability Testing (Intro Level)
+### Domain-Specific API Classes
 
-This section focuses on **test behavior**, not load testing tools yet.
+* `AuthAPI` handles authentication endpoints (login, register).
+* `UsersAPI` handles user retrieval endpoints.
 
-Includes:
+Each class encapsulates endpoint logic while keeping tests clean and readable.
 
-* Response time assertions
-* Slow endpoint detection
-* Identifying flaky tests
-* Marking unstable tests intentionally
-
-This mirrors how performance awareness starts in real QA teams.
+Example design principle: tests should read like behavior descriptions, not network instructions.
 
 ---
 
-### 4. Flaky Test Analysis
+## Validation Layer
 
-Instead of hiding flaky tests, this repo:
+Response validation is centralized in `validators.py`.
 
-* Keeps them
-* Marks them
-* Documents why they are flaky
+Instead of repeatedly asserting structure inside test files, reusable validation functions enforce schema expectations.
 
-This teaches:
+Example:
 
-* When to fix
-* When to quarantine
-* When to skip with intent
+* Token response validation ensures presence and type correctness.
+* User object validation ensures required fields exist.
 
----
+This prevents duplication and promotes consistency across tests.
 
-### 5. Test Strategy & Design Thinking
-
-The `test_strategy/` section focuses on *thinking like an SDET*:
-
-* Why a test exists
-* What risk it covers
-* What layer it belongs to (UI vs API)
-* When not to automate
-
-This is where testing becomes engineering.
+Tests verify behavior. Validators verify structure.
 
 ---
 
-## Tooling & Tech Stack
+## Defensive JSON Handling
 
-* **Python 3.14+**
-* **Pytest** – test framework
-* **Selenium** – UI automation
-* **Requests** – API testing
-* **Git & GitHub** – version control
-* **Virtual Environments** – dependency isolation
+External APIs are not always reliable. CI environments may expose edge cases that do not appear locally.
 
----
+To prevent runtime crashes from malformed responses, a safe JSON extraction wrapper is used. This protects tests from unexpected `JSONDecodeError` exceptions.
 
-## How to Run the Project
+This was particularly important during CI debugging, where local tests passed but CI failed due to response parsing issues.
 
-### Setup
-
-```
-python -m venv .venv
-.venv\Scripts\activate   # Windows
-pip install -r requirements.txt
-```
-
-### Run all tests
-
-```
-pytest -v
-```
-
-### Run only smoke tests
-
-```
-pytest -m smoke -v
-```
-
-### Run headless (CI-style)
-
-```
-set HEADLESS=true
-pytest -v
-```
+Automation must anticipate failure modes.
 
 ---
 
-## Philosophy Behind This Repo
+## API Test Coverage
 
-This repository is intentionally:
+The API layer includes coverage for:
 
-* Incremental
-* Sometimes messy
-* Frequently refactored
+### Authentication Scenarios
 
-Because **real SDET work is exactly like that**.
+* Successful registration
+* Missing password validation
+* Invalid credentials handling
+* Response time validation
+* Status code handling across environments
 
-The goal is not perfection.
-The goal is *understanding, ownership, and growth*.
+Because external APIs may return 403 in some environments, assertions were made resilient while still validating expected behavior.
+
+### Users API Scenarios
+
+* Retrieve list of users
+* Retrieve single user by ID
+* User not found handling
+* JSON structure validation
+* Response content verification
+
+Edge cases addressed include:
+
+* 403 responses in CI
+* Non-JSON responses
+* Empty body responses
+
+These were identified during CI execution and rectified using defensive validation techniques.
 
 ---
 
-## Roadmap Ahead
+## Performance Testing
 
-* Expand API test suites (5+ tests per scenario)
-* Add response schema validation
-* Introduce basic mocking concepts
-* Improve reporting
-* Prepare CI integration
+Performance tests validate response timing thresholds and stability under repeated calls.
+
+The goal is not load testing but regression-level performance assurance.
+
+Performance coverage includes:
+
+* Response time under defined threshold
+* Multiple sequential request validation
+* Stability verification under repetition
+
+These tests are executed as part of CI to ensure no performance degradation occurs silently.
 
 ---
 
-If you are reading this as a future version of me:
+## UI Automation Foundation
 
-This is where the journey stopped being about tests —
-and started being about engineering.
+UI tests are located under `tests/ui/` and demonstrate Selenium-based automation.
+
+Covered concepts include:
+
+* Dynamic content handling
+* Element interaction
+* Assertion strategy
+* Marker-based test grouping
+
+UI tests are modular and separated from API tests using Pytest markers. This allows selective execution.
+
+UI tests are intentionally not fully integrated into CI at this stage to avoid browser dependency complexity during Phase B.
+
+---
+
+## Continuous Integration (CI)
+
+GitHub Actions pipeline executes automatically on push and pull request.
+
+Pipeline stages:
+
+1. Checkout repository
+2. Setup Python 3.11
+3. Create virtual environment
+4. Install dependencies
+5. Verify Pytest collection
+6. Execute API tests
+7. Execute performance tests
+
+During CI implementation, several issues were encountered and resolved:
+
+* Import path resolution errors
+* Validator import failures
+* JSON decode failures in runner environment
+* Status code inconsistencies between local and CI
+
+These were resolved through structural corrections and defensive coding practices.
+
+CI now reliably validates the framework.
+
+---
+
+## Running Locally
+
+Clone the repository and navigate to the project directory.
+
+Create a virtual environment using Python.
+
+Activate the environment.
+
+Install dependencies from `requirements.txt`.
+
+Execute tests using Pytest markers:
+
+* API tests
+* Performance tests
+* UI tests
+
+This selective execution allows flexible validation.
+
+---
+
+## Technologies Used
+
+* Python 3.11
+* Pytest
+* Requests
+* Selenium
+* GitHub Actions
+* Virtual Environment (venv)
+
+---
+
+## What This Project Demonstrates
+
+* Structured automation architecture
+* Modular API abstraction
+* Reusable validation layer
+* Defensive automation design
+* CI/CD integration
+* Performance validation fundamentals
+* Clean separation of concerns
+
+This repository reflects a strong automation foundation aligned with SDET-level practices.
+
+---
+
+## Future Enhancements
+
+Potential next steps include:
+
+* JSON schema validation integration
+* Retry and logging framework implementation
+* Dockerized execution
+* Parallel test execution
+* Full UI integration in CI
+* Load testing integration (Locust or JMeter)
+* Reporting tools integration
+
+---
+
+## Project Status
+
+Phase B complete.
+
+The framework now includes API automation, UI foundation, performance validation, and CI integration. The structure is stable, extensible, and production-oriented.
+
+This repository represents a complete automation foundation ready for expansion into advanced engineering practices.
